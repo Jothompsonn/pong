@@ -5,7 +5,7 @@ use work.pwm;
 
 entity pong is
     port(
-        CLK: in std_logic; 
+        CLK, rst: in std_logic; 
         KEY: in std_logic_vector(1 downto 0);
         LEDR: out std_logic_vector(9 downto 0) 
     ); 
@@ -14,13 +14,17 @@ end pong;
 
 architecture rtl of pong is 
     type direction is (left, right);
-    signal dir_tracker: direction;
+    signal dir_tracker: direction := RIGHT;
     signal led_pwm: std_logic_vector(3 downto 0);
     signal light_pos: natural range 0 to 9 := 1;
 begin 
-    LIGHT_POS_PROC: process(CLK, KEY(1), KEY(0)) 
+    LIGHT_POS_PROC: process(CLK, rst, KEY(1), KEY(0)) 
     begin 
-        if rising_edge(clk) then
+        if rst  = '1' then 
+            light_pos <= 1;
+            dir_tracker <= RIGHT;
+            -- add rest score logic
+        elsif rising_edge(clk) then
             -- Pong logic 
             case dir_tracker is 
                 when LEFT => 
@@ -66,7 +70,22 @@ begin
 
     end process;
 
-    PROC_PONG_LED_PROC: process(clk)
+    -- Should produce a duty_cycle of 75%, using formula duty_cycle_per = (duty_cycle * 100)/(2^pwm_bits - 1)
+    -- Frequency if clk_hz is 50MHz is ~= 50hz
+    bright_pwm: entity work.pwm generic map(pwm_bits => 10, clk_cnt_len => 1000)
+                                port map( clk => clk, rst => rst, duty_cycle => x"300", pwm_out => led_pwm(0));
+
+    -- Should produce a duty_cycle of 50%, using formula duty_cycle_per = (duty_cycle * 100)/(2^pwm_bits - 1)
+    -- Frequency if clk_hz is 50MHz is ~= 50hz
+    dimmer_pwm: entity work.pwm generic map(pwm_bits => 10, clk_cnt_len => 1000)
+                                port map( clk => clk, rst => rst, duty_cycle => x"200", pwm_out => led_pwm(1));
+
+    -- Should produce a duty_cycle of 25%, using formula duty_cycle_per = (duty_cycle * 100)/(2^pwm_bits - 1)
+    -- Frequency if clk_hz is 50MHz is ~= 50hz
+    dimmest_pwm: entity work.pwm generic map(pwm_bits => 10, clk_cnt_len => 1000)
+                                port map( clk => clk, rst => rst, duty_cycle => x"100", pwm_out => led_pwm(2));
+
+    PROC_PONG_LED_PROC: process(clk, rst)
     begin
         if rising_edge(clk) then
             case dir_tracker is 

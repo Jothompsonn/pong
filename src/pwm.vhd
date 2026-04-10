@@ -1,7 +1,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+-- code adapted from vhdlwhiz.com/pwm_controller  b Jonas Julian Jensen
 
+--  To calculate pwm_hz use this forumula  pwm_hz = clk_hz/(clk_cnt_len * (2^ pwm_bits - 1 ))
+-- To calculate duty_cycle_per use duty_cycle_per = (duty_cycle * 100)/(2^pwm_bits - 1) 
 entity pwm is 
     generic (
             pwm_bits: natural; 
