@@ -7,7 +7,9 @@ entity pong is
     port(
         CLK, rst: in std_logic; 
         KEY: in std_logic_vector(1 downto 0);
-        LEDR: out std_logic_vector(9 downto 0) 
+        LEDR: out std_logic_vector(9 downto 0);
+        score_left_pulse: out std_logic;
+        score_right_pulse: out std_logic
     ); 
 end pong; 
 
@@ -25,6 +27,9 @@ begin
             dir_tracker <= RIGHT;
             -- add rest score logic
         elsif rising_edge(clk) then
+            --reset pulses every clock
+            score_left_pulse <= '0';
+            score_right_pulse <='0';
             -- Pong logic 
             case dir_tracker is 
                 when LEFT => 
@@ -37,6 +42,7 @@ begin
                         dir_tracker <= RIGHT;
                         light_pos <= 1;
                         -- add code here to increment the Right Players Score counter 
+                        score_right_pulse <= '1';
                     end if;
                 when RIGHT => 
                     if light_pos /= 9 then 
@@ -48,6 +54,7 @@ begin
                         dir_tracker <= LEFT;
                         light_pos <= 8;
                         -- add code here to increment the LEFT Players Score counter 
+                        score_left_pulse <= '1';
                         end if;
                 end case;
             end if;
